@@ -146,6 +146,7 @@ class JaxprPythonDecoder(Decoder):
     def visit_subgraph(self, node_visitor) -> None:
         if isinstance(self.jaxpr, jex.core.JaxprEqn):
             return
+        self.m_decoders = []
         for _, decoder in self.params.items():
             self.m_decoders.append(decoder)
             node_visitor(decoder)

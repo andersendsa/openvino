@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2026 Intel Corporation
+// Copyright (C) 2018-2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -299,7 +299,12 @@ void GraphOptimizer::FuseConvMatmulFCDeconvAndDQScales(Graph& graph) {
             }
         }
 
+#if defined(OPENVINO_ARCH_ARM) || defined(OPENVINO_ARCH_ARM64)
+        // Per-channel DQ scales fusion is not supported by ACL
+        return scalesDims[channelAxis] == 1;
+#else
         return true;
+#endif
     };
 
     auto initializeDeQuantizedScales = [](const NodePtr& node, const NodePtr& scales) {
@@ -834,6 +839,10 @@ void GraphOptimizer::MergeConvertAndEltwise(Graph& graph) {
 }
 
 void GraphOptimizer::FuseConvDeconvFCAndConvertOnWeights(Graph& graph) {
+#if defined(OV_CPU_WITH_SHL)
+    return;
+#endif
+
     // This optimization fuses Convert (fp16 -> bf16/fp32) on weights directly to FC input to allow precision conversion
     // handling based on internal logic (e.g. fuse conversion with weights reordering)
 
@@ -863,17 +872,18 @@ void GraphOptimizer::FuseConvDeconvFCAndConvertOnWeights(Graph& graph) {
             parent = transpose->getParentEdgeAt(0)->getParent();
         }
 
-        if (!isSuitableConvert(parent)) {
+        const auto convert = parent;
+        if (!isSuitableConvert(convert)) {
             continue;
         }
 
-        const auto weights = parent->getParentEdgeAt(0)->getParent();
+        const auto weights = convert->getParentEdgeAt(0)->getParent();
         const auto weights_out_edge = weights->getChildEdges()[0].lock();
         const auto fc_weights_path_edge =
             transpose ? transpose->getParentEdgeAt(0) : fullyConnected->getParentEdgeAt(1);
         const auto inNum = weights_out_edge->getInputNum();
         const auto outNum = fc_weights_path_edge->getOutputNum();
-        const auto originalPrecision = parent->getOriginalInputPrecisionAtPort(0);
+        const auto originalPrecision = convert->getOriginalInputPrecisionAtPort(0);
         fullyConnected->setOriginalInputPrecisionAtPort(1, originalPrecision);
         if (transpose) {
             transpose->setOriginalInputPrecisionAtPort(0, originalPrecision);
@@ -881,13 +891,17 @@ void GraphOptimizer::FuseConvDeconvFCAndConvertOnWeights(Graph& graph) {
         }
         graph.RemoveEdge(fc_weights_path_edge);
         graph.CreateEdge(weights, transpose ? transpose : fullyConnected, inNum, outNum);
-        if (parent->getChildEdges().empty()) {
-            graph.DropNode(parent);
+        if (convert->getChildEdges().empty()) {
+            graph.DropNode(convert);
         }
     }
 }
 
 void GraphOptimizer::FuseFCAndTransposeOnWeights(Graph& graph) {
+#if defined(OV_CPU_WITH_SHL)
+    return;
+#endif
+
     // This optimization allows us to avoid transposing the weights in Transpose node and do it directly along with
     // reordering in FC node
     const auto& graphNodes = graph.GetNodes();

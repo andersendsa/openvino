@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2026 Intel Corporation
+# Copyright (C) 2018-2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
@@ -90,7 +90,6 @@ class TestBitwiseOp(PytorchLayerTest):
             },
             freeze_model=False,
             trace_model=True,
-            fx_kind=f"aten.bitwise_{op_type}",
         )
 
 
@@ -140,7 +139,6 @@ class TestBitwiseOperators(PytorchLayerTest):
             },
             trace_model=True,
             freeze_model=False,
-            fx_kind=["aten.__and__", "aten.bitwise_not", "aten.__or__", "aten.__xor__"],
         )
 
 
@@ -189,8 +187,6 @@ class TestBitwiseInplaceOp(PytorchLayerTest):
     def test_bitwise_operators(self, op, dtype, lhs_shape, rhs_shape, ie_device, precision, ir_version):
         if ie_device == "GPU" and dtype != "bool":
             pytest.xfail(reason="bitwise ops are not supported on GPU")
-        # Map op names to fx_kind: __ior__ -> aten.__ior__, __iand__ -> aten.__iand__, __ixor__ -> aten.__ixor__
-        op_to_fx = {"aten::__ior__": "aten.__ior__", "aten::__iand__": "aten.__iand__", "aten::__ixor__": "aten.__ixor__"}
         self._test(
             *self.create_model(op),
             ie_device,
@@ -203,5 +199,4 @@ class TestBitwiseInplaceOp(PytorchLayerTest):
             },
             trace_model=True,
             freeze_model=False,
-            fx_kind=op_to_fx[op],
         )

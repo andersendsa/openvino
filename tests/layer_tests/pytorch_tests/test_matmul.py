@@ -12,11 +12,11 @@ class TestMatMulOperation(PytorchLayerTest):
     def create_model(self, matrix, vector):
         class CustomMatMulOperation(torch.nn.Module):
             def forward(self, matrix, vector):
-                return torch.mv(matrix, vector)  
+                return torch.mv(matrix, vector)
 
         model_class = CustomMatMulOperation()
         ref_net = None
-        return model_class, ref_net, "aten::mv"  
+        return model_class, ref_net, "aten::mv"
 
     @pytest.mark.nightly
     @pytest.mark.precommit
@@ -39,5 +39,5 @@ class TestMatMulOperation(PytorchLayerTest):
             ie_device,
             precision,
             ir_version,
-            kwargs_to_prepare_input={"matrix": matrix_input, "vector": vector_input},
+            kwargs_to_prepare_input={"matrix": matrix_input, "vector": vector_input}
         )

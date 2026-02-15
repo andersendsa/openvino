@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2026 Intel Corporation
+# Copyright (C) 2018-2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 
@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import torch
 
-from pytorch_layer_test_class import PytorchLayerTest, skip_if_export
+from pytorch_layer_test_class import PytorchLayerTest
 
 
 class TestIndexCopy(PytorchLayerTest):
@@ -82,7 +82,7 @@ class TestIndexCopy(PytorchLayerTest):
     @pytest.mark.precommit
     @pytest.mark.precommit_torch_export
     @pytest.mark.precommit_fx_backend
-    @pytest.mark.parametrize('inplace', [skip_if_export(True), False])
+    @pytest.mark.parametrize('inplace', [True, False])
     def test_index_copy_single_index(self, inplace, ie_device, precision, ir_version, input_data):
         self.input_tensor = np.random.randn(*input_data["input_shape"]).astype(np.float32)
         self.values = np.random.randn(*input_data["values_shape"]).astype(np.float32)

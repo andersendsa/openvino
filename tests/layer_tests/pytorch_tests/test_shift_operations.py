@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2026 Intel Corporation
+# Copyright (C) 2018-2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
@@ -53,7 +53,6 @@ class TestShiftOperators(PytorchLayerTest):
             },
             trace_model=True,
             freeze_model=False,
-            fx_kind=["aten.__lshift__", "aten.__rshift__"],
         )
 
 
@@ -105,5 +104,4 @@ class TestBitwiseShiftFunctions(PytorchLayerTest):
             },
             trace_model=True,
             freeze_model=False,
-            fx_kind="aten.bitwise_left_shift",
         )
